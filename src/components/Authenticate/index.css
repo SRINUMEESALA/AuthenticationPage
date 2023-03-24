@@ -1,0 +1,10 @@
+.logoCompany{
+    width: 150px;
+    height: 90px;
+}
+.navLinkStylesRemover{
+    all: unset;
+}
+.navLinkStylesRemover:hover{
+    all: unset;
+}

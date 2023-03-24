@@ -1,0 +1,18 @@
+.styleInput{
+    border-radius: 20px !important;
+    border-color: rgb(0,30,60)  !important;
+    border-width: 1.5px !important;
+}
+.inputCon{
+    width: 80% !important;
+}
+.loginButton{
+    border-radius: 20px !important;
+    margin-top: 24px;
+}
+.forgotpswdButton{
+   all: unset;
+}
+.socialLoginCon{
+    width: 45%;
+}

@@ -1,0 +1,6 @@
+.navLinkStylesRemover{
+    all: unset;
+}
+.navLinkStylesRemover:hover{
+    all: unset;
+}

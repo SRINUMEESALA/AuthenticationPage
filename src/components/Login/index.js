@@ -1,6 +1,6 @@
 import "./index.css";
 import { NavLink, useNavigate } from "react-router-dom";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import CircularProgress from "@mui/material/CircularProgress";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import { url } from "../../Sources";
@@ -37,23 +37,49 @@ const Login = () => {
   const [newPasswordOne, setNewPasswordOne] = useState("");
   const [newPasswordTwo, setNewPasswordTwo] = useState("");
   const navigate = useNavigate();
+  const backBtnRef = useRef(null);
 
   const setStatusDefault = () => {
     setLoginUiStatus(loginUiStatusConstants.initial);
     setResetPasswordApiStatus(apiStatusConstants.initial);
   };
 
-  const resetPassword = (event) => {
+  const resetPassword = async (event) => {
     event.preventDefault();
-    // we can make api call here
     setResetPasswordApiStatus(apiStatusConstants.load);
-    setTimeout(() => {
-      if (newPasswordOne === newPasswordTwo) {
+    // we can make api call here
+    const options = {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        email,
+        newPassword: newPasswordOne,
+      }),
+    };
+    try {
+      if (newPasswordOne !== newPasswordTwo) {
+        throw new Error("Entered passwords mismatched");
+      }
+      const CurrentUrl = `${url}/user?forgotPassword=true`;
+      const response = await fetch(CurrentUrl, options);
+      const result = await response.json();
+      console.log(result);
+      if (response.ok) {
         setResetPasswordApiStatus(apiStatusConstants.success);
+        setNewPasswordOne("");
+        setNewPasswordTwo("");
+        setTimeout(() => {
+          backBtnRef.current.click();
+        }, 2000);
       } else {
         setResetPasswordApiStatus(apiStatusConstants.fail);
       }
-    }, 2000);
+    } catch (error) {
+      console.log(error);
+      setResetPasswordApiStatus(apiStatusConstants.fail);
+    }
   };
 
   const onSubmitLoginForm = async (event) => {
@@ -232,6 +258,7 @@ const Login = () => {
         </div>
         <div className=" align-self-start mt-3">
           <button
+            ref={backBtnRef}
             className="btn btn-sm  btn-outline-primary"
             onClick={setStatusDefault}>
             <ArrowBackIcon />

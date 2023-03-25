@@ -3,6 +3,7 @@ import { apiStatusConstants } from "../Login";
 import { useState } from "react";
 import CircularProgress from "@mui/material/CircularProgress";
 import { url } from "../../Sources";
+import { useNavigate } from "react-router-dom";
 
 const Register = () => {
   const [email, setEmail] = useState("");
@@ -11,6 +12,7 @@ const Register = () => {
     apiStatusConstants.initial
   );
   const [name, setaName] = useState("");
+  const navigate = useNavigate();
 
   const onSubmitRegisterForm = async (event) => {
     event.preventDefault();
@@ -38,6 +40,9 @@ const Register = () => {
         setPassword("");
         setaName("");
         setUserRegisterApiStatus(apiStatusConstants.success);
+        setTimeout(() => {
+          navigate("/auth/login");
+        }, 2000);
       } else {
         setUserRegisterApiStatus(apiStatusConstants.fail);
       }

@@ -12,7 +12,7 @@ const reducer = (state = initialState, action) => {
     default:
       break;
   }
-  console.log(updatedState);
+
   return updatedState;
 };
 export default reducer;

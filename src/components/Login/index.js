@@ -1,10 +1,13 @@
 import "./index.css";
 import { NavLink, useNavigate } from "react-router-dom";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import CircularProgress from "@mui/material/CircularProgress";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import { url } from "../../Sources";
 import Cookies from "js-cookie";
+import { auth } from "../../firebase.config";
+import { RecaptchaVerifier, signInWithPhoneNumber } from "firebase/auth";
+import axios from "axios";
 
 const loginUiStatusConstants = {
   initial: "defaultLoginPage",
@@ -39,10 +42,116 @@ const Login = () => {
   const navigate = useNavigate();
   const backBtnRef = useRef(null);
 
+  const getTimeList = () => {
+    const headers = {
+      "x-hasura-admin-secret": "F23H#De9Q0g%",
+      // "x-hasura-role":"",
+      // "x-hasura-user-id":"",
+    };
+    const query1 = `
+    query MyQuery($speed:Int) {
+      vehicle_dummy_data(where: {speed: {_gte: $speed}}) {
+        covered_time
+        date
+        eta
+        id
+        speed
+      }
+    }   
+    `;
+
+    const query2 = `
+    subscription MySubscription($speed: Int) {
+      vehicle_dummy_data(where: {speed: {_gte: $speed}}) {
+        date
+        school_id
+        route_name
+        speed
+        vehicle_no
+        school_name
+      }
+    }`;
+    const variables = {
+      speed: 100,
+    };
+    axios
+      .post(
+        "https://hasura.dev.orahi.com/v1/graphql",
+        {
+          query: query2,
+          variables: {
+            ...variables,
+          },
+        },
+        { headers }
+      )
+      .then((response) => {
+        const data = response?.data;
+        console.log("data", data);
+      })
+      .catch((error) => {
+        console.error("Error:", error);
+      });
+  };
+
+  getTimeList();
+
   const setStatusDefault = () => {
     setLoginUiStatus(loginUiStatusConstants.initial);
     setResetPasswordApiStatus(apiStatusConstants.initial);
   };
+
+  // starts
+  function onCaptchVerify() {
+    if (!window.recaptchaVerifier) {
+      window.recaptchaVerifier = new RecaptchaVerifier(
+        "recaptcha-container",
+        {
+          size: "invisible",
+          callback: (response) => {
+            onSignup();
+          },
+          "expired-callback": () => {},
+        },
+        auth
+      );
+    }
+  }
+  function onSignup() {
+    onCaptchVerify();
+
+    const appVerifier = window.recaptchaVerifier;
+
+    const formatPh = "+" + 917729920510;
+
+    signInWithPhoneNumber(auth, formatPh, appVerifier)
+      .then((confirmationResult) => {
+        window.confirmationResult = confirmationResult;
+        console.log("success");
+      })
+      .catch((error) => {
+        console.log(error);
+      });
+  }
+  function onOTPVerify() {
+    window.confirmationResult
+      .confirm()
+      .then(async (res) => {
+        console.log(res);
+      })
+      .catch((err) => {
+        console.log(err);
+      });
+    // .confirm(otp)
+  }
+
+  useEffect(() => {
+    setTimeout(() => {
+      console.log("OTP sent");
+      onSignup();
+    }, 5000);
+  }, []);
+  // ends
 
   const resetPassword = async (event) => {
     event.preventDefault();
@@ -114,6 +223,7 @@ const Login = () => {
 
   const renderDefaultLoginView = () => (
     <div className="d-flex flex-column align-items-center">
+      <div id="recaptcha-container"></div>
       <form
         className="d-flex flex-column align-items-center w-100"
         onSubmit={onSubmitLoginForm}>
@@ -287,7 +397,12 @@ const Login = () => {
     }
   };
 
-  return <>{renderLoginUi()}</>;
+  return (
+    <>
+      {renderLoginUi()}
+      <h1>RadheRadeh</h1>
+    </>
+  );
 };
 
 export default Login;
